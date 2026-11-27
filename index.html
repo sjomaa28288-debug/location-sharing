@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشاركة الموقع</title>
+    <title>مشاركة الموقع المباشر</title>
     <style>
         body { font-family: sans-serif; text-align: center; padding: 50px 20px; background: #f4f4f9; }
         button { padding: 15px 30px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; }
@@ -17,20 +17,30 @@
     <p id="status"></p>
 
     <script>
+        const dbUrl = "https://" + "my-location-32dcf-default-rtdb" + "." + "firebaseio" + "." + "com/location.json";
+
         function startSharing() {
             const status = document.getElementById('status');
             if (!navigator.geolocation) {
                 status.textContent = 'متصفحك لا يدعم تحديد الموقع.';
                 return;
             }
-            status.textContent = 'جاري طلب الإذن وتحديد الموقع...';
+            status.textContent = 'جاري طلب الإذن... يرجى الضغط على "سماح"';
             navigator.geolocation.watchPosition(
                 (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    status.textContent = `تم التفعيل! موقعك الحالي: ${lat}, ${lng}`;
+                    const data = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        time: new Date().toLocaleTimeString()
+                    };
+                    fetch(dbUrl, {
+                        method: 'PUT',
+                        body: JSON.stringify(data)
+                    }).then(() => {
+                        status.textContent = 'تم تفعيل مشاركة الموقع بنجاح! لا تغلق هذه الصفحة.';
+                    });
                 },
-                (error) => {
+                () => {
                     status.textContent = 'تم رفض الإذن أو تعذر تحديد الموقع.';
                 },
                 { enableHighAccuracy: true }

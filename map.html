@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متابعة الموقع المباشر</title>
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        body { margin: 0; font-family: sans-serif; }
+        #info { padding: 15px; background: #222; color: white; text-align: center; font-size: 16px; }
+        #map { height: calc(100vh - 52px); width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="info">جاري انتظار مشاركة الموقع من صديقك...</div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com"></script>
+    <script>
+        const dbUrl = "https://" + "my-location-32dcf-default-rtdb" + "." + "firebaseio" + "." + "com/location.json";
+        
+        const map = L.map('map').setView([24.7136, 46.6753], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'OpenStreetMap'
+        }).addTo(map);
+
+        let marker = null;
+        let firstLoad = true;
+
+        function updateLocation() {
+            fetch(dbUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.lat && data.lng) {
+                        const pos = [data.lat, data.lng];
+                        document.getElementById('info').textContent = `آخر تحديث للموقع: ${data.time}`;
+                        
+                        if (!marker) {
+                            marker = L.marker(pos).addTo(map);
+                        } else {
+                            marker.setLatLng(pos);
+                        }
+                        
+                        if (firstLoad) {
+                            map.setView(pos, 16);
+                            firstLoad = false;
+                        }
+                    }
+                });
+        }
+
+        setInterval(updateLocation, 3000);
+        updateLocation();
+    </script>
+</body>
+</html>
